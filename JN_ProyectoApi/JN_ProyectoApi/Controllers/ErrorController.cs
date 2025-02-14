@@ -19,7 +19,7 @@ namespace JN_ProyectoApi.Controllers
             var respuesta = new RespuestaModel();
 
             respuesta.Indicador = false;
-            respuesta.Mensaje = "Se presentó un problema en el sistema";
+            respuesta.Mensaje = "Se presentó un problema en el sistema.";
 
             return Ok(respuesta);
         }
