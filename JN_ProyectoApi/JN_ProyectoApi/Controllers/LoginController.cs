@@ -29,7 +29,7 @@ namespace JN_ProyectoApi.Controllers
             using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
             {
                 var result = context.Execute("RegistrarCuenta", 
-                    new { model.Identificacion, model.Nombre, model.Correo, model.Contrasenna });
+                    new { model.Identificacion, model.NombreUsuario, model.Correo, model.Contrasenna });
 
                 var respuesta = new RespuestaModel();
 
@@ -58,7 +58,7 @@ namespace JN_ProyectoApi.Controllers
 
                 if (result != null)
                 {
-                    result.Token = GenerarToken(result.Id);
+                    result.Token = GenerarToken(result.Id, result.IdPerfil);
 
                     respuesta.Indicador = true;
                     respuesta.Datos = result;
@@ -73,12 +73,13 @@ namespace JN_ProyectoApi.Controllers
             }
         }
 
-        private string GenerarToken(long Id)
+        private string GenerarToken(long Id, long IdPerfi)
         {
             string SecretKey = _configuration.GetSection("Variables:llaveToken").Value!;
 
             List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("IdUsuario", Id.ToString()));
+            claims.Add(new Claim("Id", Id.ToString()));
+            claims.Add(new Claim("IdPerfi", IdPerfi.ToString()));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
