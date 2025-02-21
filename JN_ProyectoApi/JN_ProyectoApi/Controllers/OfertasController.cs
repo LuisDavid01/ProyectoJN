@@ -4,29 +4,27 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Reflection;
 
 namespace JN_ProyectoApi.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class PuestosController : ControllerBase
+    public class OfertasController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        public PuestosController(IConfiguration configuration)
+        public OfertasController(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
         [HttpGet]
-        [Route("ConsultarPuestos")]
-        public IActionResult ConsultarPuestos(long Id) 
+        [Route("ConsultarOfertas")]
+        public IActionResult ConsultarOfertas(long Id)
         {
             using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
             {
-                var result = context.Query<PuestosModel>("ConsultarPuestos",
+                var result = context.Query<OfertasModel>("ConsultarOfertas",
                     new { Id });
 
                 var respuesta = new RespuestaModel();
