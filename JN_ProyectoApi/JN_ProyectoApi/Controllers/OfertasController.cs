@@ -42,5 +42,28 @@ namespace JN_ProyectoApi.Controllers
                 return Ok(respuesta);
             }
         }
+
+        [HttpPost]
+        [Route("RegistrarOferta")]
+        public IActionResult RegistrarOferta(OfertasModel model)
+        {
+            using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
+            {
+                var result = context.Execute("RegistrarOferta",
+                    new { model.IdPuesto, model.Salario, model.Horario, model.Cantidad });
+
+                var respuesta = new RespuestaModel();
+
+                if (result > 0)
+                    respuesta.Indicador = true;
+                else
+                {
+                    respuesta.Indicador = false;
+                    respuesta.Mensaje = "La oferta no se ha registrado correctamente";
+                }
+
+                return Ok(respuesta);
+            }
+        }
     }
 }

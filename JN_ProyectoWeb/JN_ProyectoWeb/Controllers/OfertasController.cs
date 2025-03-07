@@ -38,5 +38,28 @@ namespace JN_ProyectoWeb.Controllers
 
             return View(new List<OfertasModel>());
         }
+
+        [HttpGet]
+        public IActionResult RegistrarOfertas()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult RegistrarOfertas(OfertasModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/RegistrarOferta";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PostAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction("ConsultarOfertas", "Ofertas");
+            }
+
+            return View();
+        }
     }
 }

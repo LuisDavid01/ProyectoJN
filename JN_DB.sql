@@ -223,7 +223,7 @@ GO
 
 CREATE PROCEDURE [dbo].[RegistrarCuenta]
 	@Identificacion varchar(15),
-	@Nombre varchar(250),
+	@NombreUsuario varchar(250),
 	@Correo varchar(100),
 	@Contrasenna varchar(50)
 AS
@@ -235,9 +235,35 @@ BEGIN
 	BEGIN
 
 		INSERT INTO dbo.Usuario(Identificacion,Nombre,Correo,Contrasenna,Estado,IdPerfil)
-		VALUES (@Identificacion,@Nombre,@Correo,@Contrasenna,1,2)
+		VALUES (@Identificacion,@NombreUsuario,@Correo,@Contrasenna,1,2)
 
 	END
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[RegistrarOferta]
+	@IdPuesto bigint,
+	@Salario decimal(10,2),
+	@Horario varchar(500),
+	@Cantidad int
+AS
+BEGIN
+	
+	INSERT INTO dbo.Oferta(IdPuesto,Salario,Horario,Cantidad)
+     VALUES (@IdPuesto,@Salario,@Horario,@Cantidad)
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[RegistrarPuesto]
+	@Nombre varchar(255),
+	@Descripcion varchar(1024)
+AS
+BEGIN
+	
+	INSERT INTO dbo.Puesto (Nombre,Descripcion)
+    VALUES (@Nombre,@Descripcion)
 
 END
 GO

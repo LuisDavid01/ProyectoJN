@@ -42,5 +42,29 @@ namespace JN_ProyectoWeb.Controllers
 
             return View(new List<PuestosModel>());
         }
+
+        [HttpGet]
+        public IActionResult RegistrarPuestos()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult RegistrarPuestos(PuestosModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Puestos/RegistrarPuesto";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PostAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction("ConsultarPuestos", "Puestos");
+            }
+
+            return View();
+        }
+
     }
 }
