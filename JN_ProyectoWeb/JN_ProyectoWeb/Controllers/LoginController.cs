@@ -125,7 +125,7 @@ namespace JN_ProyectoWeb.Controllers
             return Convert.ToBase64String(array);
         }
 
-        public string Decrypt(string texto)
+        private string Decrypt(string texto)
         {
             byte[] iv = new byte[16];
             byte[] buffer = Convert.FromBase64String(texto);

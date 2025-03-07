@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-
-namespace JN_ProyectoApi.Models
+﻿namespace JN_ProyectoApi.Models
 {
     public class UsuarioModel
     {

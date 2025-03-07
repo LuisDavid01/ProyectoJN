@@ -1,11 +1,8 @@
 ﻿using Dapper;
 using JN_ProyectoApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Reflection;
 
 namespace JN_ProyectoApi.Controllers
 {
@@ -22,7 +19,7 @@ namespace JN_ProyectoApi.Controllers
 
         [HttpGet]
         [Route("ConsultarPuestos")]
-        public IActionResult ConsultarPuestos(long Id) 
+        public IActionResult ConsultarPuestos(long Id)
         {
             using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
             {

@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using JN_ProyectoApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 

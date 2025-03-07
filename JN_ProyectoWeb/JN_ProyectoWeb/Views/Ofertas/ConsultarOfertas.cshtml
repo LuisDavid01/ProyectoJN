@@ -1,0 +1,37 @@
+﻿@model List<OfertasModel>
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Ofertas</h2>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">Horario</th>
+                    <th scope="col">Salario</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Nombre</td>
+                        <td>@item.Descripcion</td>
+                        <td>@item.Cantidad</td>
+                        <td>@item.Horario</td>
+                        <td>@item.Salario</td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>

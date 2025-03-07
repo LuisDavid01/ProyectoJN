@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using JN_ProyectoApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
@@ -28,7 +27,7 @@ namespace JN_ProyectoApi.Controllers
         {
             using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
             {
-                var result = context.Execute("RegistrarCuenta", 
+                var result = context.Execute("RegistrarCuenta",
                     new { model.Identificacion, model.NombreUsuario, model.Correo, model.Contrasenna });
 
                 var respuesta = new RespuestaModel();
@@ -36,13 +35,13 @@ namespace JN_ProyectoApi.Controllers
                 if (result > 0)
                     respuesta.Indicador = true;
                 else
-                { 
+                {
                     respuesta.Indicador = false;
                     respuesta.Mensaje = "Su información no se ha registrado correctamente";
                 }
 
                 return Ok(respuesta);
-            }            
+            }
         }
 
         [HttpPost]
@@ -72,6 +71,8 @@ namespace JN_ProyectoApi.Controllers
                 return Ok(respuesta);
             }
         }
+
+        //Recuperar la contraseña
 
         private string GenerarToken(long Id, long IdPerfi)
         {
