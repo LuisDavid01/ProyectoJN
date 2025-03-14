@@ -1,4 +1,5 @@
 ﻿using JN_ProyectoWeb.Models;
+using JN_ProyectoWeb.Servicios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,34 +14,18 @@ namespace JN_ProyectoWeb.Controllers
     {
         private readonly IHttpClientFactory _httpClient;
         private readonly IConfiguration _configuration;
-        public PuestosController(IHttpClientFactory httpClient, IConfiguration configuration)
+        private readonly IGeneral _general;
+        public PuestosController(IHttpClientFactory httpClient, IConfiguration configuration, IGeneral general)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _general = general;
         }
 
         public IActionResult ConsultarPuestos()
         {
-            using (var http = _httpClient.CreateClient())
-            {
-                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Puestos/ConsultarPuestos";
-
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
-                var response = http.GetAsync(url).Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
-
-                    if (result != null && result.Indicador)
-                    {
-                        var datosResult = JsonSerializer.Deserialize<List<PuestosModel>>((JsonElement)result.Datos!);
-                        return View(datosResult);
-                    }
-                }
-            }
-
-            return View(new List<PuestosModel>());
+            var datosResult = _general.ConsultarDatosPuestos(0);
+            return View(datosResult);
         }
 
         [HttpGet]
@@ -58,6 +43,30 @@ namespace JN_ProyectoWeb.Controllers
 
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
                 var response = http.PostAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction("ConsultarPuestos", "Puestos");
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ActualizarPuestos(long Id)
+        {
+            var datosResult = _general.ConsultarDatosPuestos(Id).FirstOrDefault();
+            return View(datosResult);
+        }
+
+        [HttpPost]
+        public IActionResult ActualizarPuestos(PuestosModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Puestos/ActualizarPuesto";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PutAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
                     return RedirectToAction("ConsultarPuestos", "Puestos");

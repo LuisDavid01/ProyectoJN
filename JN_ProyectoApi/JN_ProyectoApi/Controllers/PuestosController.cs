@@ -65,5 +65,28 @@ namespace JN_ProyectoApi.Controllers
                 return Ok(respuesta);
             }
         }
+
+        [HttpPut]
+        [Route("ActualizarPuesto")]
+        public IActionResult ActualizarPuesto(PuestosModel model)
+        {
+            using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
+            {
+                var result = context.Execute("ActualizarPuesto",
+                    new { model.Id, model.Nombre, model.Descripcion });
+
+                var respuesta = new RespuestaModel();
+
+                if (result > 0)
+                    respuesta.Indicador = true;
+                else
+                {
+                    respuesta.Indicador = false;
+                    respuesta.Mensaje = "El puesto no se ha actualizado correctamente";
+                }
+
+                return Ok(respuesta);
+            }
+        }
     }
 }

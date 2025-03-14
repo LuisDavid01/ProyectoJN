@@ -13,6 +13,7 @@ CREATE TABLE [dbo].[Oferta](
 	[Salario] [decimal](10, 2) NOT NULL,
 	[Horario] [varchar](500) NOT NULL,
 	[Cantidad] [int] NOT NULL,
+	[Estado] [bit] NOT NULL,
  CONSTRAINT [PK_Oferta] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -71,9 +72,15 @@ GO
 
 SET IDENTITY_INSERT [dbo].[Oferta] ON 
 GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad]) VALUES (1, 2, CAST(3200.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5)
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3200.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5, 1)
 GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad]) VALUES (2, 1, CAST(2800.00 AS Decimal(10, 2)), N'Lunes a Viernes Medio Tiempo', 2)
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (2, 1, CAST(2800.00 AS Decimal(10, 2)), N'Lunes a Viernes Medio Tiempo', 2, 1)
+GO
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (3, 3, CAST(6000.00 AS Decimal(10, 2)), N'Lunes a Viernes', 6, 1)
+GO
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (4, 3, CAST(6000.00 AS Decimal(10, 2)), N'Lunes a Viernes', 6, 1)
+GO
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (5, 1, CAST(5500.00 AS Decimal(10, 2)), N'Lunes a Miércoles', 6, 0)
 GO
 SET IDENTITY_INSERT [dbo].[Oferta] OFF
 GO
@@ -92,6 +99,10 @@ GO
 INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (1, N'Programador Jr .NET', N'Tareas de desarrollo en Visual Studio .Net Core')
 GO
 INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (2, N'Asistente de BD SQL Server', N'Tareas de base de datos, mantenimiento y revisión')
+GO
+INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (3, N'Prueba 06', N'Esta es la prueba 06')
+GO
+INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (4, N'Puesto 2', N'Descripción del Puesto 2')
 GO
 SET IDENTITY_INSERT [dbo].[Puesto] OFF
 GO
@@ -148,6 +159,42 @@ GO
 ALTER TABLE [dbo].[Usuario_Oferta] CHECK CONSTRAINT [FK_Usuario_Oferta_Usuario]
 GO
 
+CREATE PROCEDURE [dbo].[ActualizarOferta]
+	@Id bigint,
+	@IdPuesto bigint,
+	@Salario decimal(10,2),
+	@Horario varchar(500),
+	@Cantidad int,
+	@Estado bit
+AS
+BEGIN
+	
+	UPDATE	dbo.Oferta
+	   SET	IdPuesto = @IdPuesto,
+			Salario = @Salario,
+			Horario = @Horario,
+			Cantidad = @Cantidad,
+			Estado = @Estado
+	 WHERE Id = @Id
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[ActualizarPuesto]
+	@Id bigint,
+	@Nombre varchar(255),
+	@Descripcion varchar(1024)
+AS
+BEGIN
+	
+	UPDATE Puesto
+	SET Nombre = @Nombre,
+		Descripcion = @Descripcion
+	WHERE Id = @Id
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[ConsultarOfertas]
 	@Id BIGINT
 AS
@@ -156,7 +203,8 @@ BEGIN
 	IF(@Id = 0)
 		SET @Id = NULL
 
-	SELECT	O.Id,Salario,Horario,Cantidad,IdPuesto,P.Nombre,P.Descripcion
+	SELECT	O.Id,Salario,Horario,Cantidad,IdPuesto,P.Nombre,P.Descripcion,Estado,
+			CASE WHEN Estado = 1 THEN 'Activo' ELSE 'Inactivo' END EstadoDescripcion
 	FROM	dbo.Oferta O
 	INNER	JOIN dbo.Puesto P ON O.IdPuesto = P.Id
 	WHERE	O.Id = ISNULL(@Id,O.Id)
@@ -250,8 +298,8 @@ CREATE PROCEDURE [dbo].[RegistrarOferta]
 AS
 BEGIN
 	
-	INSERT INTO dbo.Oferta(IdPuesto,Salario,Horario,Cantidad)
-     VALUES (@IdPuesto,@Salario,@Horario,@Cantidad)
+	INSERT INTO dbo.Oferta(IdPuesto,Salario,Horario,Cantidad,Estado)
+    VALUES (@IdPuesto,@Salario,@Horario,@Cantidad,1)
 
 END
 GO

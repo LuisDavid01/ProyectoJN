@@ -1,5 +1,7 @@
 ﻿using JN_ProyectoWeb.Models;
+using JN_ProyectoWeb.Servicios;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -9,39 +11,24 @@ namespace JN_ProyectoWeb.Controllers
     {
         private readonly IHttpClientFactory _httpClient;
         private readonly IConfiguration _configuration;
-        public OfertasController(IHttpClientFactory httpClient, IConfiguration configuration)
+        private readonly IGeneral _general;
+        public OfertasController(IHttpClientFactory httpClient, IConfiguration configuration, IGeneral general)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _general = general;
         }
 
         public IActionResult ConsultarOfertas()
         {
-            using (var http = _httpClient.CreateClient())
-            {
-                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ConsultarOfertas";
-
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
-                var response = http.GetAsync(url).Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
-
-                    if (result != null && result.Indicador)
-                    {
-                        var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
-                        return View(datosResult);
-                    }
-                }
-            }
-
-            return View(new List<OfertasModel>());
+            var datosResult = _general.ConsultarDatosOfertas(0);
+            return View(datosResult);
         }
 
         [HttpGet]
         public IActionResult RegistrarOfertas()
         {
+            CargarComboPuestos();
             return View();
         }
 
@@ -60,6 +47,45 @@ namespace JN_ProyectoWeb.Controllers
             }
 
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult ActualizarOfertas(long Id)
+        {
+            CargarComboPuestos();
+            var datosResult = _general.ConsultarDatosOfertas(Id).FirstOrDefault();
+            return View(datosResult);
+        }
+
+        [HttpPost]
+        public IActionResult ActualizarOfertas(OfertasModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ActualizarOferta";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PutAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                    return RedirectToAction("ConsultarOfertas", "Ofertas");
+            }
+
+            return View();
+        }
+
+        private void CargarComboPuestos()
+        {
+            var datosResult = _general.ConsultarDatosPuestos(0);
+
+            var puestosSelect = new List<SelectListItem>();
+            puestosSelect.Add(new SelectListItem { Text = "-- Seleccione --", Value = string.Empty });
+            foreach (var datos in datosResult)
+            {
+                puestosSelect.Add(new SelectListItem { Text = datos.Nombre, Value = datos.Id.ToString() });
+            }
+
+            ViewBag.Puestos = puestosSelect;
         }
     }
 }
