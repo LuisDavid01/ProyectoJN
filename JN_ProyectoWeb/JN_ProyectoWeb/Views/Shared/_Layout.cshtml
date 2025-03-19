@@ -24,7 +24,7 @@
             <div id="sidebar" class="sidebar sidebar-with-footer">
 
                 <div class="app-brand">
-                    <a href="/index.html">
+                    <a href="@Url.Action("Principal","Login")">
                         <img src="~/img/logo.png" alt="Mono">
                         <span class="brand-name">MONO</span>
                     </a>
@@ -97,10 +97,13 @@
                     </div>
                 </nav>
 
-
             </header>
 
-            @RenderBody()
+            <div class="content-wrapper">
+                <div class="content">
+                    @RenderBody()
+                </div>
+            </div>
 
             <footer class="footer mt-auto">
                 <div class="copyright bg-white">
