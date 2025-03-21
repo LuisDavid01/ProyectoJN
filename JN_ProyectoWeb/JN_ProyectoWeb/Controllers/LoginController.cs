@@ -1,5 +1,6 @@
 ﻿using JN_ProyectoWeb.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Text.Json;
 
 namespace JN_ProyectoWeb.Controllers
 {
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class LoginController : Controller
     {
         private readonly IHttpClientFactory _httpClient;
@@ -37,6 +39,8 @@ namespace JN_ProyectoWeb.Controllers
 
                 if (response.IsSuccessStatusCode)
                     return RedirectToAction("IniciarSesion", "Login");
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
 
             return View();
@@ -76,7 +80,16 @@ namespace JN_ProyectoWeb.Controllers
                         HttpContext.Session.SetString("IdPerfil", datosResult!.IdPerfil.ToString());
                         return RedirectToAction("Principal", "Login");
                     }
+                    else
+                    {
+                        ViewBag.Msj = result!.Mensaje;
+                    }
                 }
+                else
+                {
+                    ViewBag.Msj = "No se pudo completar su petición";
+                }
+
             }
 
             return View();
@@ -85,15 +98,25 @@ namespace JN_ProyectoWeb.Controllers
         #endregion
 
         [HttpGet]
+        public IActionResult RecuperarContrasenna()
+        {
+            return View();
+        }
+
+
+        [FiltroSesion]
+        [HttpGet]
         public IActionResult Principal()
         {
             return View();
         }
 
+        [FiltroSesion]
         [HttpGet]
-        public IActionResult RecuperarContrasenna()
+        public IActionResult CerrarSesion()
         {
-            return View();
+            HttpContext.Session.Clear();
+            return RedirectToAction("IniciarSesion", "Login");
         }
 
         private string Encrypt(string texto)
