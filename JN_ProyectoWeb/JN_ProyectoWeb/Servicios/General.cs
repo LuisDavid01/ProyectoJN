@@ -41,7 +41,7 @@ namespace JN_ProyectoWeb.Servicios
             }
         }
 
-        public List<OfertasModel> ConsultarDatosOfertas(long Id)
+        public HttpResponseMessage ConsultarDatosOfertas(long Id)
         {
             using (var http = _httpClient.CreateClient())
             {
@@ -50,18 +50,8 @@ namespace JN_ProyectoWeb.Servicios
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _contextAccessor.HttpContext!.Session.GetString("Token"));
                 var response = http.GetAsync(url).Result;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
-
-                    if (result != null && result.Indicador)
-                    {
-                        return JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!)!;
-                    }
-                }
+                return response;
             }
-
-            return new List<OfertasModel>();
         }
 
     }

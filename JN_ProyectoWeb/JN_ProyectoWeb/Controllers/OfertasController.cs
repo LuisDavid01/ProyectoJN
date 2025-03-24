@@ -23,8 +23,24 @@ namespace JN_ProyectoWeb.Controllers
 
         public IActionResult ConsultarOfertas()
         {
-            var datosResult = _general.ConsultarDatosOfertas(0);
-            return View(datosResult);
+            var response = _general.ConsultarDatosOfertas(0);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                    return View(datosResult);
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new List<OfertasModel>());
         }
 
         [HttpGet]
@@ -45,7 +61,16 @@ namespace JN_ProyectoWeb.Controllers
                 var response = http.PostAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
-                    return RedirectToAction("ConsultarOfertas", "Ofertas");
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("ConsultarOfertas", "Ofertas");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
 
             return View();
@@ -55,8 +80,24 @@ namespace JN_ProyectoWeb.Controllers
         public IActionResult ActualizarOfertas(long Id)
         {
             CargarComboPuestos();
-            var datosResult = _general.ConsultarDatosOfertas(Id).FirstOrDefault();
-            return View(datosResult);
+            var response = _general.ConsultarDatosOfertas(Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                    return View(datosResult!.FirstOrDefault());
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new OfertasModel());
         }
 
         [HttpPost]
@@ -70,7 +111,16 @@ namespace JN_ProyectoWeb.Controllers
                 var response = http.PutAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
-                    return RedirectToAction("ConsultarOfertas", "Ofertas");
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("ConsultarOfertas", "Ofertas");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
 
             return View();

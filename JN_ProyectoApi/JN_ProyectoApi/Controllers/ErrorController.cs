@@ -40,7 +40,7 @@ namespace JN_ProyectoApi.Controllers
             respuesta.Indicador = false;
             respuesta.Mensaje = "Se presentó un problema en el sistema.";
 
-            return Ok(respuesta);
+            return BadRequest(respuesta);
         }
 
     }
