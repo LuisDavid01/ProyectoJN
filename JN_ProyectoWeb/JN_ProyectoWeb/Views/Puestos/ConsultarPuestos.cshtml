@@ -13,9 +13,12 @@
 
     <div class="card-body">
 
-        <div class="alert alert-default text-center" role="alert">
-            @ViewBag.Msj
-        </div>
+        @if (@ViewBag.Msj != null)
+        {
+            <div class="alert alert-default text-center" role="alert">
+                @ViewBag.Msj
+            </div>
+        }
 
         <table id="example" class="table table-bordered">
             <thead>
@@ -49,7 +52,7 @@
     $(document).ready(function() {
         var table = new DataTable('#example', {
             language: {
-                url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json',
+                url: 'https://cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json',
             },
             columnDefs: [{
               targets: '_all', className: 'dt-left'

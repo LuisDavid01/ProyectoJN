@@ -128,16 +128,22 @@ namespace JN_ProyectoWeb.Controllers
 
         private void CargarComboPuestos()
         {
-            var datosResult = _general.ConsultarDatosPuestos(0);
+            var response = _general.ConsultarDatosPuestos(0);
 
-            var puestosSelect = new List<SelectListItem>();
-            puestosSelect.Add(new SelectListItem { Text = "-- Seleccione --", Value = string.Empty });
-            foreach (var datos in datosResult)
+            if (response.IsSuccessStatusCode)
             {
-                puestosSelect.Add(new SelectListItem { Text = datos.Nombre, Value = datos.Id.ToString() });
-            }
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
 
-            ViewBag.Puestos = puestosSelect;
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<PuestosModel>>((JsonElement)result.Datos!);
+
+                    if (datosResult != null && datosResult.Any())
+                    {
+                        ViewBag.Puestos = new SelectList(datosResult, "Id", "Nombre");
+                    }                    
+                }
+            }
         }
     }
 }

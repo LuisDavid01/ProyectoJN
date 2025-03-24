@@ -28,7 +28,7 @@ namespace JN_ProyectoApi.Controllers
 
                 var respuesta = new RespuestaModel();
 
-                if (result != null)
+                if (result.Any())
                 {
                     respuesta.Indicador = true;
                     respuesta.Datos = result;

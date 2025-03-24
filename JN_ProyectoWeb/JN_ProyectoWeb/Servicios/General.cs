@@ -18,7 +18,7 @@ namespace JN_ProyectoWeb.Servicios
             _contextAccessor = contextAccessor;
         }
 
-        public List<PuestosModel> ConsultarDatosPuestos(long Id)
+        public HttpResponseMessage ConsultarDatosPuestos(long Id)
         {
             using (var http = _httpClient.CreateClient())
             {
@@ -27,17 +27,7 @@ namespace JN_ProyectoWeb.Servicios
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _contextAccessor.HttpContext!.Session.GetString("Token"));
                 var response = http.GetAsync(url).Result;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
-
-                    if (result != null && result.Indicador)
-                    {
-                        return JsonSerializer.Deserialize<List<PuestosModel>>((JsonElement)result.Datos!)!;
-                    }
-                }
-
-                return new List<PuestosModel>();
+                return response;
             }
         }
 

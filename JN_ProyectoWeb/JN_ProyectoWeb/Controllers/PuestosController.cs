@@ -26,8 +26,24 @@ namespace JN_ProyectoWeb.Controllers
 
         public IActionResult ConsultarPuestos()
         {
-            var datosResult = _general.ConsultarDatosPuestos(0);
-            return View(datosResult);
+            var response = _general.ConsultarDatosPuestos(0);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<PuestosModel>>((JsonElement)result.Datos!);
+                    return View(datosResult);
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new List<PuestosModel>());
         }
 
         [HttpGet]
@@ -47,7 +63,16 @@ namespace JN_ProyectoWeb.Controllers
                 var response = http.PostAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
-                    return RedirectToAction("ConsultarPuestos", "Puestos");
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("ConsultarPuestos", "Puestos");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
 
             return View();
@@ -56,9 +81,26 @@ namespace JN_ProyectoWeb.Controllers
         [HttpGet]
         public IActionResult ActualizarPuestos(long Id)
         {
-            var datosResult = _general.ConsultarDatosPuestos(Id).FirstOrDefault();
-            return View(datosResult);
+            var response = _general.ConsultarDatosPuestos(Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<PuestosModel>>((JsonElement)result.Datos!);
+                    return View(datosResult!.FirstOrDefault());
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new PuestosModel());
         }
+
 
         [HttpPost]
         public IActionResult ActualizarPuestos(PuestosModel model)
@@ -71,9 +113,17 @@ namespace JN_ProyectoWeb.Controllers
                 var response = http.PutAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
-                    return RedirectToAction("ConsultarPuestos", "Puestos");
-            }
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
 
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("ConsultarPuestos", "Puestos");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
+            }
             return View();
         }
 
