@@ -38,10 +38,14 @@ namespace JN_ProyectoWeb.Controllers
                         var datos = JsonSerializer.Deserialize<UsuarioModel>((JsonElement)result.Datos!)!;
                         return View(datos);
                     }
+                    else
+                        ViewBag.Msj = result!.Mensaje;
                 }
-
-                return View(new UsuarioModel());
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
+
+            return View(new UsuarioModel());
         }
 
         [HttpPost]
@@ -56,9 +60,18 @@ namespace JN_ProyectoWeb.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.SetString("Nombre", model.NombreUsuario!);
-                    return RedirectToAction("ActualizarDatos", "Usuarios");
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                    {
+                        HttpContext.Session.SetString("Nombre", model.NombreUsuario!);
+                        return RedirectToAction("ActualizarDatos", "Usuarios");
+                    }
+                    else
+                        ViewBag.Msj = result!.Mensaje;
                 }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
             }
 
             return View();
