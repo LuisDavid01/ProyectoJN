@@ -38,7 +38,14 @@ namespace JN_ProyectoWeb.Controllers
                 var response = http.PostAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
-                    return RedirectToAction("IniciarSesion", "Login");
+                { 
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("IniciarSesion", "Login");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
                 else
                     ViewBag.Msj = "No se pudo completar su petición";
             }
@@ -81,15 +88,10 @@ namespace JN_ProyectoWeb.Controllers
                         return RedirectToAction("Principal", "Login");
                     }
                     else
-                    {
                         ViewBag.Msj = result!.Mensaje;
-                    }
                 }
                 else
-                {
                     ViewBag.Msj = "No se pudo completar su petición";
-                }
-
             }
 
             return View();
@@ -97,12 +99,15 @@ namespace JN_ProyectoWeb.Controllers
 
         #endregion
 
+        #region RecuperarContrasenna
+
         [HttpGet]
         public IActionResult RecuperarContrasenna()
         {
             return View();
         }
 
+        #endregion
 
         [FiltroSesion]
         [HttpGet]
