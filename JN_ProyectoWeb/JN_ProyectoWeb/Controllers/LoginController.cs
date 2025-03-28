@@ -1,4 +1,5 @@
 ﻿using JN_ProyectoWeb.Models;
+using JN_ProyectoWeb.Servicios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace JN_ProyectoWeb.Controllers
     {
         private readonly IHttpClientFactory _httpClient;
         private readonly IConfiguration _configuration;
-        public LoginController(IHttpClientFactory httpClient, IConfiguration configuration)
+        private readonly IGeneral _general;
+        public LoginController(IHttpClientFactory httpClient, IConfiguration configuration, IGeneral general)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _general = general;
         }
 
         #region RegistrarCuenta
@@ -30,7 +33,7 @@ namespace JN_ProyectoWeb.Controllers
         [HttpPost]
         public IActionResult RegistrarCuenta(UsuarioModel model)
         {
-            model.Contrasenna = Encrypt(model.Contrasenna!);
+            model.Contrasenna = _general.Encrypt(model.Contrasenna!);
 
             using (var http = _httpClient.CreateClient())
             {
@@ -66,7 +69,7 @@ namespace JN_ProyectoWeb.Controllers
         [HttpPost]
         public IActionResult IniciarSesion(UsuarioModel model)
         {
-            model.Contrasenna = Encrypt(model.Contrasenna!);
+            model.Contrasenna = _general.Encrypt(model.Contrasenna!);
 
             using (var http = _httpClient.CreateClient())
             {
@@ -107,6 +110,30 @@ namespace JN_ProyectoWeb.Controllers
             return View();
         }
 
+        [HttpPost]
+        public IActionResult RecuperarContrasenna(UsuarioModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Login/RecuperarContrasenna";
+                var response = http.PutAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                        return RedirectToAction("IniciarSesion", "Login");
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
+            }
+
+            return View();
+        }
+
         #endregion
 
         [FiltroSesion]
@@ -122,60 +149,6 @@ namespace JN_ProyectoWeb.Controllers
         {
             HttpContext.Session.Clear();
             return RedirectToAction("IniciarSesion", "Login");
-        }
-
-        private string Encrypt(string texto)
-        {
-            byte[] iv = new byte[16];
-            byte[] array;
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(_configuration.GetSection("Variables:llaveCifrado").Value!);
-                aes.IV = iv;
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
-                        {
-                            streamWriter.Write(texto);
-                        }
-
-                        array = memoryStream.ToArray();
-                    }
-                }
-            }
-
-            return Convert.ToBase64String(array);
-        }
-
-        private string Decrypt(string texto)
-        {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(texto);
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(_configuration.GetSection("Variables:llaveCifrado").Value!);
-                aes.IV = iv;
-
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader streamReader = new StreamReader(cryptoStream))
-                        {
-                            return streamReader.ReadToEnd();
-                        }
-                    }
-                }
-            }
         }
 
     }

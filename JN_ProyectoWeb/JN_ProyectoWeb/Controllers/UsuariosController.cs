@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Text.Json;
+using JN_ProyectoWeb.Servicios;
 
 namespace JN_ProyectoWeb.Controllers
 {
@@ -13,10 +14,12 @@ namespace JN_ProyectoWeb.Controllers
     {
         private readonly IHttpClientFactory _httpClient;
         private readonly IConfiguration _configuration;
-        public UsuariosController(IHttpClientFactory httpClient, IConfiguration configuration)
+        private readonly IGeneral _general;
+        public UsuariosController(IHttpClientFactory httpClient, IConfiguration configuration, IGeneral general)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _general = general;
         }
 
         [HttpGet]
@@ -66,6 +69,43 @@ namespace JN_ProyectoWeb.Controllers
                     {
                         HttpContext.Session.SetString("Nombre", model.NombreUsuario!);
                         return RedirectToAction("ActualizarDatos", "Usuarios");
+                    }
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ActualizarContrasenna()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ActualizarContrasenna(UsuarioModel model)
+        {
+            model.Contrasenna = _general.Encrypt(model.Contrasenna!);
+            model.ContrasennaAnterior = _general.Encrypt(model.ContrasennaAnterior!);
+
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Usuarios/ActualizarContrasenna";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PutAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                    {
+                        return RedirectToAction("Principal", "Login");
                     }
                     else
                         ViewBag.Msj = result!.Mensaje;

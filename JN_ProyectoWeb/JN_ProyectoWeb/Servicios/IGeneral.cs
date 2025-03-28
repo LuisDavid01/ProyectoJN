@@ -6,5 +6,6 @@ namespace JN_ProyectoWeb.Servicios
     {
         HttpResponseMessage ConsultarDatosPuestos(long Id);
         HttpResponseMessage ConsultarDatosOfertas(long Id);
+        string Encrypt(string texto);
     }
 }

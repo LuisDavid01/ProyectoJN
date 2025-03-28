@@ -20,7 +20,14 @@
 
                         <h4 class="text-dark text-center mb-1">Recuperar Contraseña</h4>
 
-                        <form action="/index.html">
+                        @if (@ViewBag.Msj != null)
+                        {
+                            <div class="alert alert-default text-center" role="alert">
+                                @ViewBag.Msj
+                            </div>
+                        }
+
+                        <form asp-controller="Login" asp-action="RecuperarContrasenna">
                             <div class="row">
                                 <div class="form-group col-md-12 mb-4">
                                     <input type="text" class="form-control input-lg" asp-for="Correo" placeholder="Correo">
@@ -28,7 +35,6 @@
 
                                 <div class="col-md-12">
                                     <button type="submit" class="btn btn-primary btn-pill mb-4">Procesar</button>
-
                                     <p>
                                         ¿Ya tienes una cuenta?
                                         <a class="text-blue" href="@Url.Action("IniciarSesion","Login")">Inicia Sesión</a>
