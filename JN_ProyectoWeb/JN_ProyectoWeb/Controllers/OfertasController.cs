@@ -3,6 +3,7 @@ using JN_ProyectoWeb.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text.Json;
 
 namespace JN_ProyectoWeb.Controllers
@@ -124,6 +125,31 @@ namespace JN_ProyectoWeb.Controllers
             }
 
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult ObtenerOfertasUsuario()
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ConsultarUsuariosOfertas";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.GetAsync(url).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                    {
+                        var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                        return Json(datosResult);
+                    }
+                }
+            }
+
+            return Json(null);
         }
 
         private void CargarComboPuestos()

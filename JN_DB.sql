@@ -7,6 +7,19 @@ GO
 USE [JN_DB]
 GO
 
+CREATE TABLE [dbo].[Error](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[IdUsuario] [bigint] NOT NULL,
+	[FechaHora] [datetime] NOT NULL,
+	[Mensaje] [varchar](max) NOT NULL,
+	[Origen] [varchar](100) NOT NULL,
+ CONSTRAINT [PK_Error] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 CREATE TABLE [dbo].[Oferta](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[IdPuesto] [bigint] NOT NULL,
@@ -72,15 +85,9 @@ GO
 
 SET IDENTITY_INSERT [dbo].[Oferta] ON 
 GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3200.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5, 1)
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3600.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5, 1)
 GO
 INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (2, 1, CAST(2800.00 AS Decimal(10, 2)), N'Lunes a Viernes Medio Tiempo', 2, 1)
-GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (3, 3, CAST(6000.00 AS Decimal(10, 2)), N'Lunes a Viernes', 6, 1)
-GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (4, 3, CAST(6000.00 AS Decimal(10, 2)), N'Lunes a Viernes', 6, 1)
-GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (5, 1, CAST(5500.00 AS Decimal(10, 2)), N'Lunes a Miércoles', 6, 0)
 GO
 SET IDENTITY_INSERT [dbo].[Oferta] OFF
 GO
@@ -100,25 +107,25 @@ INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (1, N'Programador J
 GO
 INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (2, N'Asistente de BD SQL Server', N'Tareas de base de datos, mantenimiento y revisión')
 GO
-INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (3, N'Prueba 06', N'Esta es la prueba 06')
-GO
-INSERT [dbo].[Puesto] ([Id], [Nombre], [Descripcion]) VALUES (4, N'Puesto 2', N'Descripción del Puesto 2')
-GO
 SET IDENTITY_INSERT [dbo].[Puesto] OFF
 GO
 
 SET IDENTITY_INSERT [dbo].[Usuario] ON 
 GO
-INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna], [Estado], [IdPerfil]) VALUES (1, N'304590415', N'Eduardo Calvo Castillo', N'ecalvo90415@ufide.ac.cr', N'o7ZFK+0vH7H7CzFhUIz2ig==', 1, 1)
+INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna], [Estado], [IdPerfil]) VALUES (1, N'304590415', N'Eduardo CC', N'ecalvo90415@ufide.ac.cr', N'o7ZFK+0vH7H7CzFhUIz2ig==', 1, 1)
+GO
+INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna], [Estado], [IdPerfil]) VALUES (4, N'118420238', N'Darien Aguilar', N'daguilar20238@ufide.ac.cr', N'qaQjSK8oist/vCdoRBG3IQ==', 1, 2)
 GO
 SET IDENTITY_INSERT [dbo].[Usuario] OFF
 GO
 
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] ON 
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (1, 1, 1, CAST(N'2025-02-20T00:00:00.000' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (1, 1, 1, CAST(N'2025-02-20T15:35:00.000' AS DateTime), 1)
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (2, 1, 2, CAST(N'2025-02-19T00:00:00.000' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (2, 1, 2, CAST(N'2025-02-19T09:40:00.000' AS DateTime), 1)
+GO
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (4, 4, 2, CAST(N'2025-03-26T18:05:00.000' AS DateTime), 1)
 GO
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] OFF
 GO
@@ -159,6 +166,30 @@ GO
 ALTER TABLE [dbo].[Usuario_Oferta] CHECK CONSTRAINT [FK_Usuario_Oferta_Usuario]
 GO
 
+CREATE PROCEDURE [dbo].[ActualizarContrasenna]
+	@Id bigint,
+	@Contrasenna varchar(50),
+	@ContrasennaAnterior varchar(50)
+AS
+BEGIN
+	
+	IF(@ContrasennaAnterior != '')
+	BEGIN
+		UPDATE Usuario
+		SET Contrasenna = @Contrasenna
+		WHERE	Id = @Id
+			AND	Contrasenna = @ContrasennaAnterior
+	END
+	ELSE
+	BEGIN
+		UPDATE Usuario
+		SET Contrasenna = @Contrasenna
+		WHERE Id = @Id
+	END
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[ActualizarOferta]
 	@Id bigint,
 	@IdPuesto bigint,
@@ -195,6 +226,23 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE [dbo].[ActualizarUsuario]
+	@Id bigint,
+	@Identificacion varchar(15),
+	@NombreUsuario varchar(250),
+	@Correo varchar(100)
+AS
+BEGIN
+	
+	UPDATE Usuario
+	SET Identificacion = @Identificacion,
+		Nombre = @NombreUsuario,
+		Correo = @Correo
+	WHERE Id = @Id
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[ConsultarOfertas]
 	@Id BIGINT
 AS
@@ -223,6 +271,26 @@ BEGIN
 	SELECT	Id,Nombre,Descripcion
 	FROM	dbo.Puesto
 	WHERE	Id = ISNULL(@Id,Id)
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[ConsultarUsuario]
+	@Id BIGINT
+AS
+BEGIN
+	
+	SELECT	U.Id,
+			Identificacion,
+			U.Nombre 'NombreUsuario',
+			Correo,
+			Estado,
+			IdPerfil,
+			P.Nombre 'NombrePerfil'
+	FROM	dbo.Usuario U
+	INNER	JOIN dbo.Perfil P ON U.IdPerfil = P.Id
+	WHERE   U.Id = @Id
+		AND Estado = 1
 
 END
 GO
@@ -290,6 +358,19 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE [dbo].[RegistrarError]
+	@IdUsuario bigint,
+	@Mensaje varchar(max),
+	@Origen varchar(100)
+AS
+BEGIN
+	
+	INSERT INTO dbo.Error(IdUsuario,FechaHora,Mensaje,Origen)
+    VALUES (@IdUsuario,GETDATE(),@Mensaje,@Origen)
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[RegistrarOferta]
 	@IdPuesto bigint,
 	@Salario decimal(10,2),
@@ -312,6 +393,25 @@ BEGIN
 	
 	INSERT INTO dbo.Puesto (Nombre,Descripcion)
     VALUES (@Nombre,@Descripcion)
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[ValidarUsuarioCorreo]
+	@Correo varchar(100)
+AS
+BEGIN
+	
+	SELECT	U.Id,
+			Identificacion,
+			U.Nombre 'NombreUsuario',
+			Correo,
+			Estado,
+			IdPerfil,
+			P.Nombre 'NombrePerfil'
+	FROM	dbo.Usuario U
+	INNER	JOIN dbo.Perfil P ON U.IdPerfil = P.Id
+	WHERE   Correo = @Correo
 
 END
 GO

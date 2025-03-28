@@ -11,5 +11,8 @@
         public string? Descripcion { get; set; }
         public bool Estado { get; set; }
         public string? EstadoDescripcion { get; set; }
+
+        public DateTime Fecha { get; set; }
+        public long IdOferta { get; set; }
     }
 }

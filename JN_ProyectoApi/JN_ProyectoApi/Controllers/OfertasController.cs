@@ -89,5 +89,31 @@ namespace JN_ProyectoApi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("ConsultarUsuariosOfertas")]
+        public IActionResult ConsultarUsuariosOfertas()
+        {
+            using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
+            {
+                var result = context.Query<OfertasModel>("ConsultarUsuariosOfertas",
+                    new {  });
+
+                var respuesta = new RespuestaModel();
+
+                if (result.Any())
+                {
+                    respuesta.Indicador = true;
+                    respuesta.Datos = result;
+                }
+                else
+                {
+                    respuesta.Indicador = false;
+                    respuesta.Mensaje = "No hay información registrada";
+                }
+
+                return Ok(respuesta);
+            }
+        }
+        
     }
 }
