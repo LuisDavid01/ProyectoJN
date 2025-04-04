@@ -46,6 +46,19 @@ namespace JN_ProyectoWeb.Servicios
             }
         }
 
+        public HttpResponseMessage ConsultarDatosOfertasDisponibles()
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ConsultarOfertasDisponibles";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _contextAccessor.HttpContext!.Session.GetString("Token"));
+                var response = http.GetAsync(url).Result;
+
+                return response;
+            }
+        }
+
         public string Encrypt(string texto)
         {
             byte[] iv = new byte[16];

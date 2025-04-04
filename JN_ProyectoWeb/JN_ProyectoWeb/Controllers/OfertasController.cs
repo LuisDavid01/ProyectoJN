@@ -128,6 +128,10 @@ namespace JN_ProyectoWeb.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Utilizado para llenar el calendario
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
         public IActionResult ObtenerOfertasUsuario()
         {
@@ -156,12 +160,35 @@ namespace JN_ProyectoWeb.Controllers
         [HttpGet]
         public IActionResult ConsultarOfertasDisponibles()
         {
+            var response = _general.ConsultarDatosOfertasDisponibles();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                    return View(datosResult);
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new List<OfertasModel>());
+        }
+
+        [HttpPost]
+        public IActionResult AplicarOferta(OfertasModel model)
+        {
             using (var http = _httpClient.CreateClient())
             {
-                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ConsultarOfertasDisponibles";
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/AplicarOferta";
 
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
-                var response = http.GetAsync(url).Result;
+                var response = http.PostAsJsonAsync(url, model).Result;
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -169,8 +196,8 @@ namespace JN_ProyectoWeb.Controllers
 
                     if (result != null && result.Indicador)
                     {
-                        var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
-                        return View(datosResult);
+                        //Pantalla de ofertas aplicadas
+                        return RedirectToAction("Principal", "Login");
                     }
                     else
                         ViewBag.Msj = result!.Mensaje;
@@ -179,7 +206,21 @@ namespace JN_ProyectoWeb.Controllers
                     ViewBag.Msj = "No se pudo completar su petición";
             }
 
-            return View(new List<OfertasModel>());
+            //En caso de no aplicar correctamente
+            var responseConsulta = _general.ConsultarDatosOfertasDisponibles();
+            var datosResult = new List<OfertasModel>();
+
+            if (responseConsulta.IsSuccessStatusCode)
+            {
+                var result = responseConsulta.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                }
+            }
+
+            return View("ConsultarOfertasDisponibles", datosResult);
         }
 
         private void CargarComboPuestos()

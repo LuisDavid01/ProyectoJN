@@ -20,6 +20,16 @@ CREATE TABLE [dbo].[Error](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+CREATE TABLE [dbo].[EstadosAplicacion](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[EstadoParticipacion] [varchar](100) NOT NULL,
+ CONSTRAINT [PK_EstadosAplicacion] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 CREATE TABLE [dbo].[Oferta](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[IdPuesto] [bigint] NOT NULL,
@@ -83,6 +93,19 @@ CREATE TABLE [dbo].[Usuario_Oferta](
 ) ON [PRIMARY]
 GO
 
+SET IDENTITY_INSERT [dbo].[EstadosAplicacion] ON 
+GO
+INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (1, N'En Proceso')
+GO
+INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (2, N'En Entrevista')
+GO
+INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (3, N'Descartado')
+GO
+INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (4, N'Contratado')
+GO
+SET IDENTITY_INSERT [dbo].[EstadosAplicacion] OFF
+GO
+
 SET IDENTITY_INSERT [dbo].[Oferta] ON 
 GO
 INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3600.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5, 1)
@@ -121,11 +144,9 @@ GO
 
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] ON 
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (1, 1, 1, CAST(N'2025-02-20T15:35:00.000' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (6, 4, 2, CAST(N'2025-04-03T20:36:13.867' AS DateTime), 1)
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (2, 1, 2, CAST(N'2025-02-19T09:40:00.000' AS DateTime), 1)
-GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (4, 4, 2, CAST(N'2025-03-26T18:05:00.000' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (7, 4, 1, CAST(N'2025-04-03T20:45:01.843' AS DateTime), 1)
 GO
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] OFF
 GO
@@ -152,6 +173,12 @@ ALTER TABLE [dbo].[Usuario]  WITH CHECK ADD  CONSTRAINT [FK_Usuario_Perfil] FORE
 REFERENCES [dbo].[Perfil] ([Id])
 GO
 ALTER TABLE [dbo].[Usuario] CHECK CONSTRAINT [FK_Usuario_Perfil]
+GO
+
+ALTER TABLE [dbo].[Usuario_Oferta]  WITH CHECK ADD  CONSTRAINT [FK_Usuario_Oferta_EstadosAplicacion] FOREIGN KEY([Estado])
+REFERENCES [dbo].[EstadosAplicacion] ([Id])
+GO
+ALTER TABLE [dbo].[Usuario_Oferta] CHECK CONSTRAINT [FK_Usuario_Oferta_EstadosAplicacion]
 GO
 
 ALTER TABLE [dbo].[Usuario_Oferta]  WITH CHECK ADD  CONSTRAINT [FK_Usuario_Oferta_Oferta] FOREIGN KEY([IdOferta])
@@ -243,6 +270,25 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE [dbo].[AplicarOferta]
+	@IdUsuario bigint,
+	@IdOferta bigint
+AS
+BEGIN
+	
+	IF NOT EXISTS(SELECT 1 FROM dbo.Usuario_Oferta
+	WHERE	IdUsuario = @IdUsuario
+		AND IdOferta = @IdOferta)
+	BEGIN
+
+		INSERT INTO dbo.Usuario_Oferta(IdUsuario,IdOferta,Fecha,Estado)
+		VALUES (@IdUsuario,@IdOferta,GETDATE(),1)
+
+	END
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[ConsultarOfertas]
 	@Id BIGINT
 AS
@@ -256,6 +302,22 @@ BEGIN
 	FROM	dbo.Oferta O
 	INNER	JOIN dbo.Puesto P ON O.IdPuesto = P.Id
 	WHERE	O.Id = ISNULL(@Id,O.Id)
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[ConsultarOfertasDisponibles]
+
+AS
+BEGIN
+	
+	SELECT	O.Id, Salario, Horario, Cantidad, IdPuesto, P.Nombre, P.Descripcion, O.Estado, COUNT(UO.IdOferta) CantidadAplicaciones
+	FROM	dbo.Oferta O
+	INNER	JOIN dbo.Puesto P ON O.IdPuesto = P.Id
+	LEFT	JOIN dbo.Usuario_Oferta UO ON O.Id = UO.IdOferta
+	WHERE	O.Estado = 1
+		AND O.Cantidad > 0
+	GROUP BY O.Id, Salario, Horario, Cantidad, IdPuesto, P.Nombre, P.Descripcion, O.Estado
 
 END
 GO

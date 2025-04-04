@@ -37,12 +37,52 @@
                         <td>@item.Horario</td>
                         <td>@item.Salario</td>
                         <td>@item.CantidadAplicaciones</td>
-                        <td><a href="@Url.Action("","", new { Id = item.Id })">APLICAR</a></td>
+                        <td>
+                            <button id="AbrirModal" type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#exampleModalCenter"
+                              data-nombre="@item.Nombre"
+                              data-id="@item.Id"
+                              data-salario="@item.Salario"
+                              data-horario="@item.Horario"
+                              data-descripcion="@item.Descripcion">
+                                APLICAR
+                            </button>
+                        </td>
                     </tr>
                 }
 
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle"><label id="lblNombre"></label></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form asp-action="AplicarOferta" asp-controller="Ofertas">
+              <div class="modal-body">
+
+                  <input type="hidden" id="IdOferta" name="IdOferta" value="">
+
+                  <label>Salario: $ </label><label id="lblSalario"></label><br />
+                  <label>Horario: </label><label id="lblHorario"></label><br />
+
+                  <textarea id="txtDescripcion" class="form-control" rows="10" readonly="readonly"
+                  style="resize:none; background-color:transparent;"></textarea>
+              </div>
+              <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Confirmar</button>
+              </div>
+            </form>
+
+        </div>
     </div>
 </div>
 
@@ -59,6 +99,16 @@
             }],
             order: [[5, 'desc'], [0, 'asc']]
         });
+    });
+
+    $(document).on("click","#AbrirModal", function(){
+    
+      $("#lblNombre").text( $(this).attr("data-nombre") );
+      $("#lblSalario").text( $(this).attr("data-salario") );
+      $("#lblHorario").text( $(this).attr("data-horario") );
+      $("#txtDescripcion").val( $(this).attr("data-descripcion") );
+      $("#IdOferta").val( $(this).attr("data-id") );
+
     });
 
 </script>
