@@ -22,6 +22,7 @@ namespace JN_ProyectoWeb.Controllers
             _general = general;
         }
 
+        [HttpGet]
         public IActionResult ConsultarOfertas()
         {
             var response = _general.ConsultarDatosOfertas(0);
@@ -150,6 +151,35 @@ namespace JN_ProyectoWeb.Controllers
             }
 
             return Json(null);
+        }
+
+        [HttpGet]
+        public IActionResult ConsultarOfertasDisponibles()
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ConsultarOfertasDisponibles";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.GetAsync(url).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                    {
+                        var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                        return View(datosResult);
+                    }
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
+            }
+
+            return View(new List<OfertasModel>());
         }
 
         private void CargarComboPuestos()

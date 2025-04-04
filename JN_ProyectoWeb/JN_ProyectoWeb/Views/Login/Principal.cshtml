@@ -19,21 +19,25 @@
           dataType:"json",
           success: function(events){
 
-            events.forEach(function (element, index) {
-            
-              let date = new Date(element.fecha);
+            if(events != null)
+            {
+              events.forEach(function (element, index) {
 
-              eventsArray.push({
-                    title: element.nombre,
-                    description: moment(date).format('HH:mm') + " Oferta #" + element.idOferta,
-                    start: date,
-                    end: date,
-                    allDay: false,
-                    backgroundColor: "gray",
-                    url: ""
+                let date = new Date(element.fecha);
+
+                eventsArray.push({
+                      title: element.nombre,
+                      description: moment(date).format('HH:mm') + " Oferta #" + element.idOferta,
+                      start: date,
+                      end: date,
+                      allDay: false,
+                      backgroundColor: "gray",
+                      url: ""
+                });
+
               });
 
-            });
+           }
 
             InicializarCalendario(eventsArray);
           },

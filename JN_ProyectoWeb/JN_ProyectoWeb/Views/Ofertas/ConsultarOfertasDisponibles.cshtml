@@ -1,0 +1,64 @@
+﻿@model List<OfertasModel>
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Ofertas Disponibles</h2>
+    </div>
+
+    <div class="card-body">
+
+        @if (@ViewBag.Msj != null)
+        {
+            <div class="alert alert-default text-center" role="alert">
+                @ViewBag.Msj
+            </div>
+        }
+
+        <table id="example" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Plazas</th>
+                    <th scope="col">Horario</th>
+                    <th scope="col">Salario</th>
+                    <th scope="col">Participaciones</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Nombre</td>
+                        <td>@item.Cantidad</td>
+                        <td>@item.Horario</td>
+                        <td>@item.Salario</td>
+                        <td>@item.CantidadAplicaciones</td>
+                        <td><a href="@Url.Action("","", new { Id = item.Id })">APLICAR</a></td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="~/js/jquery.min.js"></script>
+<script>
+
+    $(document).ready(function() {
+        var table = new DataTable('#example', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json',
+            },
+            columnDefs: [{
+              targets: '_all', className: 'dt-left',
+            }],
+            order: [[5, 'desc'], [0, 'asc']]
+        });
+    });
+
+</script>

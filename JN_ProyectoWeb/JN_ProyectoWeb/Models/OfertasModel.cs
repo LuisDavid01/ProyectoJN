@@ -14,5 +14,6 @@
 
         public DateTime Fecha { get; set; }
         public long IdOferta { get; set; }
+        public int CantidadAplicaciones { get; set; }
     }
 }
