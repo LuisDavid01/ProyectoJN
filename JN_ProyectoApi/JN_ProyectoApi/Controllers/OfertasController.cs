@@ -117,10 +117,15 @@ namespace JN_ProyectoApi.Controllers
         [Route("ConsultarUsuariosOfertas")]
         public IActionResult ConsultarUsuariosOfertas()
         {
+            var IdUsuario = _general.ObtenerUsuarioFromToken(User.Claims);
+
+            if (_general.ValidarUsuarioReclutadorFromToken(User.Claims))
+                IdUsuario = -1;
+
             using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
             {
                 var result = context.Query<OfertasModel>("ConsultarUsuariosOfertas",
-                    new {  });
+                    new { IdUsuario });
 
                 var respuesta = new RespuestaModel();
 
@@ -183,7 +188,7 @@ namespace JN_ProyectoApi.Controllers
                 else
                 {
                     respuesta.Indicador = false;
-                    respuesta.Mensaje = "No se pudo realizar la postulación correctamente";
+                    respuesta.Mensaje = "Ya se encuentra participando en la oferta #" + model.IdOferta;
                 }
 
                 return Ok(respuesta);
