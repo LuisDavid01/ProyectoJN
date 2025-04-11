@@ -93,6 +93,16 @@ CREATE TABLE [dbo].[Usuario_Oferta](
 ) ON [PRIMARY]
 GO
 
+SET IDENTITY_INSERT [dbo].[Error] ON 
+GO
+INSERT [dbo].[Error] ([Id], [IdUsuario], [FechaHora], [Mensaje], [Origen]) VALUES (22, 1, CAST(N'2025-04-10T20:26:48.643' AS DateTime), N'The UPDATE statement conflicted with the FOREIGN KEY constraint "FK_Usuario_Oferta_EstadosAplicacion". The conflict occurred in database "JN_DB", table "dbo.EstadosAplicacion", column ''Id''.
+The statement has been terminated.', N'/api/Ofertas/ActualizarProcesoOferta')
+GO
+INSERT [dbo].[Error] ([Id], [IdUsuario], [FechaHora], [Mensaje], [Origen]) VALUES (23, 1, CAST(N'2025-04-10T20:27:36.130' AS DateTime), N'Procedure or function ''ActualizarProcesoOferta'' expects parameter ''@Estado'', which was not supplied.', N'/api/Ofertas/ActualizarProcesoOferta')
+GO
+SET IDENTITY_INSERT [dbo].[Error] OFF
+GO
+
 SET IDENTITY_INSERT [dbo].[EstadosAplicacion] ON 
 GO
 INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (1, N'En Proceso')
@@ -103,14 +113,16 @@ INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (3, N'Desc
 GO
 INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (4, N'Contratado')
 GO
+INSERT [dbo].[EstadosAplicacion] ([Id], [EstadoParticipacion]) VALUES (5, N'Archivado')
+GO
 SET IDENTITY_INSERT [dbo].[EstadosAplicacion] OFF
 GO
 
 SET IDENTITY_INSERT [dbo].[Oferta] ON 
 GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3600.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 5, 1)
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (1, 2, CAST(3600.00 AS Decimal(10, 2)), N'Lunes a Viernes de 08:00 a 17:00 Virtual', 3, 1)
 GO
-INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (2, 1, CAST(2800.00 AS Decimal(10, 2)), N'Lunes a Viernes Medio Tiempo', 2, 1)
+INSERT [dbo].[Oferta] ([Id], [IdPuesto], [Salario], [Horario], [Cantidad], [Estado]) VALUES (2, 1, CAST(2800.00 AS Decimal(10, 2)), N'Lunes a Viernes Medio Tiempo', 1, 1)
 GO
 SET IDENTITY_INSERT [dbo].[Oferta] OFF
 GO
@@ -139,14 +151,20 @@ INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna
 GO
 INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna], [Estado], [IdPerfil]) VALUES (4, N'118420238', N'Darien Aguilar', N'daguilar20238@ufide.ac.cr', N'qaQjSK8oist/vCdoRBG3IQ==', 1, 2)
 GO
+INSERT [dbo].[Usuario] ([Id], [Identificacion], [Nombre], [Correo], [Contrasenna], [Estado], [IdPerfil]) VALUES (5, N'118450555', N'Sebastián Castro Alfaro', N'scastro50555@ufide.ac.cr', N'MT8fO+hEb7OhcXjrXqfE3A==', 1, 2)
+GO
 SET IDENTITY_INSERT [dbo].[Usuario] OFF
 GO
 
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] ON 
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (6, 4, 2, CAST(N'2025-04-03T20:36:13.867' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (6, 4, 2, CAST(N'2025-04-03T20:36:13.867' AS DateTime), 3)
 GO
-INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (7, 4, 1, CAST(N'2025-04-03T20:45:01.843' AS DateTime), 1)
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (7, 4, 1, CAST(N'2025-04-03T20:45:01.843' AS DateTime), 4)
+GO
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (8, 5, 1, CAST(N'2025-04-10T18:28:54.193' AS DateTime), 4)
+GO
+INSERT [dbo].[Usuario_Oferta] ([Id], [IdUsuario], [IdOferta], [Fecha], [Estado]) VALUES (9, 5, 2, CAST(N'2025-04-10T18:28:58.430' AS DateTime), 4)
 GO
 SET IDENTITY_INSERT [dbo].[Usuario_Oferta] OFF
 GO
@@ -238,6 +256,34 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE [dbo].[ActualizarProcesoOferta]
+	@Id bigint,
+	@EstadoOferta int
+AS
+BEGIN
+
+	UPDATE Usuario_Oferta
+	SET Estado = @EstadoOferta
+	WHERE Id = @Id
+
+	IF(@EstadoOferta = 4)
+	BEGIN
+
+		DECLARE @IdOferta BIGINT
+
+		SELECT	@IdOferta = IdOferta
+		FROM	Usuario_Oferta
+		WHERE	Id = @Id	
+
+		UPDATE	Oferta
+		SET		Cantidad = Cantidad -1
+		WHERE	Id = @IdOferta
+
+	END
+
+END
+GO
+
 CREATE PROCEDURE [dbo].[ActualizarPuesto]
 	@Id bigint,
 	@Nombre varchar(255),
@@ -285,6 +331,17 @@ BEGIN
 		VALUES (@IdUsuario,@IdOferta,GETDATE(),1)
 
 	END
+
+END
+GO
+
+CREATE PROCEDURE [dbo].[ConsultarEstados] 
+
+AS
+BEGIN
+	
+	SELECT	Id,EstadoParticipacion
+	FROM	dbo.EstadosAplicacion
 
 END
 GO
@@ -358,21 +415,29 @@ END
 GO
 
 CREATE PROCEDURE [dbo].[ConsultarUsuariosOfertas] 
-	
+	@IdUsuario BIGINT
 AS
 BEGIN
+
+	IF(@IdUsuario = -1)
+		SET @IdUsuario = NULL
 	
-	SELECT	UO.Id,IdUsuario, 
-			U.Identificacion, 
-			U.Nombre,
+	SELECT	U.Nombre 'NombreUsuario',
+			P.Nombre,
+			Fecha,
 			IdOferta,
 			Salario,
 			Horario,
-			Fecha,
-			UO.Estado
+			O.Cantidad,
+			E.EstadoParticipacion 'EstadoDescripcion',
+			UO.Id,
+			UO.Estado 'EstadoOferta'
 	FROM	dbo.Usuario_Oferta UO
 	INNER	JOIN Usuario U ON UO.IdUsuario = U.Id
 	INNER	JOIN Oferta O ON UO.IdOferta = O.Id
+	INNER	JOIN Puesto P ON O.IdPuesto = P.Id
+	INNER	JOIN EstadosAplicacion E ON UO.Estado = E.Id
+	WHERE	UO.IdUsuario = ISNULL(@IdUsuario, UO.IdUsuario)
 
 END
 GO
