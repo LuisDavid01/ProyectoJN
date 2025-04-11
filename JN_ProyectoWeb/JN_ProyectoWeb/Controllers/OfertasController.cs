@@ -197,6 +197,31 @@ namespace JN_ProyectoWeb.Controllers
             return View(new List<OfertasModel>());
         }
 
+        [HttpGet]
+        public IActionResult SeguimientoOfertas()
+        {
+            CargarComboEstados();
+
+            var response = _general.ConsultarDatosOfertasAplicadas();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                    return View(datosResult);
+                }
+                else
+                    ViewBag.Msj = result!.Mensaje;
+            }
+            else
+                ViewBag.Msj = "No se pudo completar su petición";
+
+            return View(new List<OfertasModel>());
+        }
+
         [HttpPost]
         public IActionResult AplicarOferta(OfertasModel model)
         {
@@ -213,7 +238,6 @@ namespace JN_ProyectoWeb.Controllers
 
                     if (result != null && result.Indicador)
                     {
-                        //Pantalla de ofertas aplicadas
                         return RedirectToAction("Principal", "Login");
                     }
                     else
@@ -240,6 +264,50 @@ namespace JN_ProyectoWeb.Controllers
             return View("ConsultarOfertasDisponibles", datosResult);
         }
 
+        [HttpPost]
+        public IActionResult ActualizarProcesoOferta(OfertasModel model)
+        {
+            using (var http = _httpClient.CreateClient())
+            {
+                var url = _configuration.GetSection("Variables:urlWebApi").Value + "Ofertas/ActualizarProcesoOferta";
+
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                var response = http.PutAsJsonAsync(url, model).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                    if (result != null && result.Indicador)
+                    {
+                        return RedirectToAction("SeguimientoOfertas", "Ofertas");
+                    }
+                    else
+                        ViewBag.Msj = result!.Mensaje;
+                }
+                else
+                    ViewBag.Msj = "No se pudo completar su petición";
+            }
+
+            //En caso de no aplicar correctamente
+            CargarComboEstados();
+
+            var responseConsulta = _general.ConsultarDatosOfertasAplicadas();
+            var datosResult = new List<OfertasModel>();
+
+            if (responseConsulta.IsSuccessStatusCode)
+            {
+                var result = responseConsulta.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    datosResult = JsonSerializer.Deserialize<List<OfertasModel>>((JsonElement)result.Datos!);
+                }
+            }
+
+            return View("SeguimientoOfertas", datosResult);
+        }
+
         private void CargarComboPuestos()
         {
             var response = _general.ConsultarDatosPuestos(0);
@@ -256,6 +324,27 @@ namespace JN_ProyectoWeb.Controllers
                     {
                         ViewBag.Puestos = new SelectList(datosResult, "Id", "Nombre");
                     }                    
+                }
+            }
+        }
+
+        private void CargarComboEstados()
+        {
+            var response = _general.ConsultarDatosEstados();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadFromJsonAsync<RespuestaModel>().Result;
+
+                if (result != null && result.Indicador)
+                {
+                    var datosResult = JsonSerializer.Deserialize<List<EstadosModel>>((JsonElement)result.Datos!);
+
+                    if (datosResult != null && datosResult.Any())
+                    {
+                        datosResult.Add(new EstadosModel { Id = 0, EstadoParticipacion = "..." });
+                        ViewBag.Estados = new SelectList(datosResult.OrderBy(x => x.Id), "Id", "EstadoParticipacion");
+                    }
                 }
             }
         }

@@ -170,6 +170,32 @@ namespace JN_ProyectoApi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("ConsultarEstados")]
+        public IActionResult ConsultarEstados()
+        {
+            using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
+            {
+                var result = context.Query<EstadosModel>("ConsultarEstados",
+                    new { });
+
+                var respuesta = new RespuestaModel();
+
+                if (result.Any())
+                {
+                    respuesta.Indicador = true;
+                    respuesta.Datos = result;
+                }
+                else
+                {
+                    respuesta.Indicador = false;
+                    respuesta.Mensaje = "No hay información registrada";
+                }
+
+                return Ok(respuesta);
+            }
+        }
+
         [HttpPost]
         [Route("AplicarOferta")]
         public IActionResult AplicarOferta(OfertasModel model)
@@ -194,5 +220,29 @@ namespace JN_ProyectoApi.Controllers
                 return Ok(respuesta);
             }
         }
+
+        [HttpPut]
+        [Route("ActualizarProcesoOferta")]
+        public IActionResult ActualizarProcesoOferta(OfertasModel model)
+        {
+            var respuesta = new RespuestaModel();
+
+            using (var context = new SqlConnection(_configuration.GetSection("ConnectionStrings:BDConnection").Value))
+            {
+                var result = context.Execute("ActualizarProcesoOferta",
+                    new { model.Id, model.EstadoOferta });
+
+                if (result > 0)
+                    respuesta.Indicador = true;
+                else
+                {
+                    respuesta.Indicador = false;
+                    respuesta.Mensaje = "No fue posible actualizar el estado de la Aplicación #" + model.IdOferta;
+                }
+
+                return Ok(respuesta);
+            }
+        }
+
     }
 }
